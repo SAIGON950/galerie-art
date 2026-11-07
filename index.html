@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galerie d'Art Virtuelle</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --bg-card: #242424;
+            --text-main: #f0f0f0;
+            --text-muted: #aaaaaa;
+            --accent: #d4af37;
+            --accent-hover: #e6c547;
+            --border: #333333;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 2rem 1rem;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            background-color: rgba(30, 30, 30, 0.9);
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            font-weight: 300;
+        }
+
+        .controls-container {
+            max-width: 1200px;
+            margin: 2rem auto 1rem;
+            padding: 0 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-bar {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+        }
+
+        .search-bar::before {
+            content: "🔍";
+            position: absolute;
+            left: 0.8rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.9rem;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: var(--transition);
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background-color: var(--accent);
+            color: var(--bg-primary);
+            border-color: var(--accent);
+            font-weight: 500;
+        }
+
+        .slideshow-toggle {
+            background-color: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .slideshow-toggle:hover {
+            background-color: var(--accent);
+            color: var(--bg-primary);
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 1rem 4rem;
+            flex: 1;
+            width: 100%;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .artwork-card {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .artwork-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .artwork-image-container {
+            width: 100%;
+            height: 220px;
+            background-color: #181818;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .artwork-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+
+        .artwork-card:hover .artwork-image {
+            transform: scale(1.05);
+        }
+
+        .artwork-info {
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .artwork-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+            color: var(--text-main);
+        }
+
+        .artwork-style {
+            font-size: 0.8rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.8rem;
+        }
+
+        .artwork-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-top: auto;
+        }
+
+        /* Modal Lightbox */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            position: relative;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.7);
+        }
+
+        @media (max-width: 768px) {
+            .modal-content {
+                grid-template-columns: 1fr;
+                max-height: 95vh;
+            }
+        }
+
+        .modal-image-container {
+            background-color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
+            padding: 1rem;
+        }
+
+        .modal-image {
+            max-width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+        }
+
+        .modal-details {
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            background-color: var(--accent);
+            color: var(--bg-primary);
+        }
+
+        .modal-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-meta {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        .modal-desc {
+            font-size: 0.95rem;
+            color: var(--text-main);
+            margin-bottom: 2rem;
+            line-height: 1.7;
+        }
+
+        .interactive-section {
+            margin-top: auto;
+            border-top: 1px solid var(--border);
+            padding-top: 1.5rem;
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 0.3rem;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            color: var(--text-muted);
+        }
+
+        .rating-stars span.active {
+            color: var(--accent);
+        }
+
+        .comment-box textarea {
+            width: 100%;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.75rem;
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            resize: none;
+            height: 70px;
+            margin-bottom: 0.5rem;
+        }
+
+        .comment-box textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .submit-btn {
+            background-color: var(--accent);
+            color: var(--bg-primary);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: var(--transition);
+        }
+
+        .submit-btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        footer {
+            background-color: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            text-align: center;
+            padding: 1.5rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Galerie d'Art Virtuelle</h1>
+        <p class="subtitle">Exposition permanente de 27 œuvres</p>
+    </header>
+
+    <div class="controls-container">
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Rechercher une œuvre par titre ou description...">
+        </div>
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all">Toutes</button>
+            <button class="filter-btn" data-filter="Peinture texturée">Peinture</button>
+            <button class="filter-btn" data-filter="Art Numérique">Numérique</button>
+        </div>
+        <button class="slideshow-toggle" id="slideshowBtn">▶ Diaporama</button>
+    </div>
+
+    <main>
+        <div class="gallery-grid" id="galleryGrid">
+            <!-- Les œuvres seront injectées dynamiquement ici -->
+        </div>
+    </main>
+
+    <!-- Modal Lightbox -->
+    <div class="modal" id="artworkModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">&times;</button>
+            <div class="modal-image-container">
+                <img src="" alt="" class="modal-image" id="modalImage">
+            </div>
+            <div class="modal-details">
+                <h2 class="modal-title" id="modalTitle"></h2>
+                <div class="modal-meta" id="modalMeta"></div>
+                <p class="modal-desc" id="modalDesc"></p>
+                
+                <div class="interactive-section">
+                    <div class="rating-stars" id="ratingStars">
+                        <span data-value="1">★</span>
+                        <span data-value="2">★</span>
+                        <span data-value="3">★</span>
+                        <span data-value="4">★</span>
+                        <span data-value="5">★</span>
+                    </div>
+                    <div class="comment-box">
+                        <textarea placeholder="Laissez une impression sur cette œuvre..."></textarea>
+                        <button class="submit-btn" onclick="alert('Merci pour votre commentaire !')">Envoyer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 - Galerie d'Art Virtuelle. Tous droits réservés.</p>
+    </footer>
+
+    <script>
+        const artworks = [
+            { id: 1, title: "Architecture d’un rêve", style: "Peinture texturée", year: "2026", dimensions: "60 x 80 cm", medium: "Glycérophtalique sur papier", description: "Composition aux tons chauds et bruns, dominée par des structures rectangulaires et des teintes dorées sous un ciel nocturne étoilé et une lune rouge.", image: "architecture_d_un_reve.jpg" },
+            { id: 2, title: "Bar TGV", style: "Art Numérique", year: "2026", dimensions: "Format numérique HD", medium: "Dessin vectoriel", description: "Création géométrique et graphique aux lignes noires marquées, structurée par des aplats de couleurs franches et rehaussée de touches circulaires rouges.", image: "bar_tgv.png" },
+            { id: 3, title: "Cellule", style: "Peinture texturée", year: "2026", dimensions: "60 x 80 cm", medium: "Glycérophtalique sur papier", description: "Toile texturée évoquant un mur de briques s'ouvrant en son centre sur une fenêtre grillagée dévoilant un paysage montagneux.", image: "cellule.jpg" },
+            { id: 4, title: "Chez Dalí", style: "Art Numérique", year: "2026", dimensions: "Format numérique HD", medium: "Création numérique", description: "Scène surréaliste baignée de lumière dorée, peuplée d'oliviers, de roches en lévitation et de montres molles.", image: "chez_dali.jpg" },
+            { id: 5, title: "Chez le dentiste", style: "Art Numérique", year: "2026", dimensions: "Format numérique HD", medium: "Modélisation 3D / Numérique", description: "Composition numérique aux formes épurées et organiques jouant sur des contrastes de matières transparentes, métalliques et colorées.", image: "chez_le_dentiste.png" },
+            { id: 6, title: "Combat", style: "Peinture texturée", year: "2026", dimensions: "60 x 80 cm", medium: "Glycérophtalique sur papier", description: "Peinture expressive et sombre aux tons ocres et noirs, mettant en scène des éléments de confrontation et des silhouettes fragmentées.", image: "combat.jpg" },
+            { id: 7, title: "Cuirassier", style: "Peinture texturée", year: "2026", dimensions: "60 x 80 cm", medium: "Glycérophtalique sur papier", description: "Représentation puissante et tourmentée mêlant des teintes métalliques argentées et des éclats jaunes avec un travail marqué sur les textures.", image: "cuirassier.jpg" },
+            { id: 8, title: "Dans les nuages", style: "Peinture texturée", year: "2026", dimensions: "60 x 80 cm", medium: "Glycérophtalique sur papier", description: "Vue aérienne aux tons bleutés et lavande où un avion se devine au cœur d'une atmosphère brumeuse et vaporeuse.", image: "dans_les_nuages.jpg" },
+            { id: 9, title: "Découpé", style: "Peinture texturée", year: "2026", dimensions: "60 x 80 cm", medium: "Glycérophtalique sur papier", description: "Œuvre fragmentée par de larges bandes couleur terre laissant entrapercevoir des visages aux influences cubistes.", image: "decoupe.jpg" },
+            { id: 10, title: "Doute", style: "Art Numérique", year: "2026", dimensions: "Format numérique HD", medium: "Illustration numérique", description: "Composition numérique dynamique opposant un profil humain clair et épuré à une entité géométrique verte aux accents ténébreux.", image: "doute.png" },
+            { id: 11, title: "Découpé 2", style: "Peinture texturée", year: "2026", dimensions: "60 x 80 cm", medium: "Glycérophtalique sur papier", description: "Variante de la composition fragmentée par des bandes couleur terre, révélant des motifs cubistes aux teintes rouges et bleues.", image: "decoupe_2.jpg" },
+            { id: 12, title: "Grosse", style: "Peinture texturée", year: "2026", dimensions: "60 x 80 cm", medium: "Glycérophtalique sur papier", description: "Étude figurative expressive représentant une silhouette fluide aux tons bleutés recroquevillée sur un fond jaune soutenu.", image: "grosse.jpg" },
+            { id: 13, title: "Hô Chi Minh", style: "Peinture texturée", year: "2026", dimensions: "60 x 80 cm", medium: "Glycérophtalique sur papier", description: "Toile très texturée aux teintes rouge et jaune incandescentes, travaillée en empâtement pour former une silhouette centrale.", image: "ho_chi_minh.jpg" },
+            { id: 14, title: "Jaune 2", style: "Peinture texturée", year: "2026", dimensions: "60 x 80 cm", medium: "Glycérophtalique sur papier", description: "Composition verticale aux traits noirs épais sur un fond jaune ocre, structurée par des formes géométriques et des fenêtres de motifs.", image: "jaune_2.jpg" },
+            { id: 15, title: "Machine à voyager dans le temps", style: "Art Numérique", year: "2026", dimensions: "Format numérique HD", medium: "Illustration numérique", description: "Illustration complexe et détaillée au style steampunk/égyptien représentant un totem biomécanique orné de rouages et de conduits lumineux.", image: "machine_a_voyager_dans_le_temps.png" },
+            { id: 16, title: "Méditation profonde", style: "Art Numérique", year: "2026", dimensions: "Format numérique HD", medium: "Graphisme numérique", description: "Œuvre graphique aux aplats de couleurs sobres traversés par un réseau de lignes noires minimalistes.", image: "meditation_profonde.jpg" },
+            { id: 17, title: "Oui", style: "Peinture texturée", year: "2026", dimensions: "60 x 80 cm", medium: "Glycérophtalique sur papier", description: "Peinture mettant en scène deux personnages stylisés aux traits noirs et dorés sur un fond gris brossé intégrant des inserts colorés.", image: "oui.jpg" },
+            { id: 18, title: "Paris", style: "Peinture texturée", year: "2026", dimensions: "60 x 80 cm", medium: "Glycérophtalique sur papier", description: "Paysage urbain nocturne très texturé représentant les toits de Paris avec la tour Eiffel et le Sacré-Cœur émergeant dans des teintes bleues et dorées.", image: "paris.png" },
+            { id: 19, title: "Pêcheur", style: "Peinture texturée", year: "2026", dimensions: "60 x 80 cm", medium: "Glycérophtalique sur papier", description: "Scène marine peinte en pleine matière montrant un voilier et son navigateur fendant une mer agitée sous un envol de mouettes.", image: "pecheur.jpg" },
+            { id: 20, title: "Fantôme", style: "Peinture texturée", year: "2026", dimensions: "60 x 80 cm", medium: "Glycérophtalique sur papier", description: "Composition verticale sombre et mystique où une forme totémique émerge d'un fond bleu-gris avec des motifs oculaires.", image: "phantome.jpg" },
+            { id: 21, title: "Cocktail", style: "Art Numérique", year: "2026", dimensions: "Format numérique HD", medium: "Composition numérique", description: "Composition numérique segmentée en une grille de fenêtres révélant des motifs géométriques et des lignes graphiques.", image: "cocktail.jpg" },
+            { id: 22, title: "picassiette", style: "Art Numérique", year: "2026", dimensions: "Format numérique HD", medium: "Création numérique", description: "Création graphique épurée structurée par de larges bandes rouge sombre encadrant des fragments de paysages urbains.", image: "picassiette.png" },
+            { id: 23, title: "Médore", style: "Art Numérique", year: "2026", dimensions: "Format numérique HD", medium: "Collage numérique", description: "Collage numérique mêlant des fragments texturés, des claviers de piano, des partitions musicales et des inclusions précieuses.", image: "medo_re.jpg" },
+            { id: 24, title: "Pièce", style: "Sculpture / Objet", year: "2026", dimensions: "Dimensions variables", medium: "Assemblage minéral", description: "Structure sculpturale ou architecturale verticale composée de blocs minéraux clairs rythmée par des formes sinueuses sombres.", image: "piece.jpg" },
+            { id: 25, title: "Rite", style: "Peinture texturée", year: "2026", dimensions: "60 x 80 cm", medium: "Glycérophtalique sur toile", description: "Toile chaleureuse aux aplats jaunes et bleus traversée par un réseau de lignes noires épaisses surmontée d'une forme rouge.", image: "rite.png" },
+            { id: 26, title: "Sous l'eau", style: "Art Numérique", year: "2026", dimensions: "Format numérique HD", medium: "Illustration numérique", description: "Composition numérique nocturne ou aquatique en nuances de violet profond ponctuée de touches de lumière et de fragments colorés.", image: "sous_l_eau.jpg" },
+            { id: 27, title: "Tango", style: "Peinture texturée", year: "2026", dimensions: "60 x 80 cm", medium: "Glycérophtalique sur papier", description: "Peinture texturée aux tons bruns, ocres et gris structurée par des lignes géométriques anguleuses évoquant une danse.", image: "tango.jpg" }
+        ];
+
+        const galleryGrid = document.getElementById('galleryGrid');
+        const searchInput = document.getElementById('searchInput');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const modal = document.getElementById('artworkModal');
+        const modalClose = document.getElementById('modalClose');
+        const modalImage = document.getElementById('modalImage');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMeta = document.getElementById('modalMeta');
+        const modalDesc = document.getElementById('modalDesc');
+        const slideshowBtn = document.getElementById('slideshowBtn');
+
+        let currentFilter = 'all';
+        let searchQuery = '';
+        let slideshowInterval = null;
+        let isSlideshowActive = false;
+
+        function renderGallery() {
+            galleryGrid.innerHTML = '';
+            
+            const filtered = artworks.filter(art => {
+                const matchesFilter = currentFilter === 'all' || art.style === currentFilter;
+                const matchesSearch = art.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                      art.description.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchesFilter && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                galleryGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3rem;">Aucune œuvre ne correspond à votre recherche.</p>';
+                return;
+            }
+
+            filtered.forEach(art => {
+                const card = document.createElement('div');
+                card.className = 'artwork-card';
+                card.innerHTML = `
+                    <div class="artwork-image-container">
+                        <img src="${art.image}" alt="${art.title}" class="artwork-image" loading="lazy" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' viewBox=\'0 0 100 100\'><rect width=\'100\' height=\'100\' fill=\'%23222\'/><text x=\'50%\' y=\'50%\' fill=\'%23666\' dominant-baseline=\'middle\' text-anchor=\'middle\' font-family=\'sans-serif\' font-size=\'12px\'>Image</text></svg>'">
+                    </div>
+                    <div class="artwork-info">
+                        <h3 class="artwork-title">${art.title}</h3>
+                        <span class="artwork-style">${art.style}</span>
+                        <p class="artwork-desc">${art.description}</p>
+                    </div>
+                `;
+                card.addEventListener('click', () => openModal(art));
+                galleryGrid.appendChild(card);
+            });
+        }
+
+        function openModal(art) {
+            modalImage.src = art.image;
+            modalImage.alt = art.title;
+            modalTitle.textContent = art.title;
+            modalMeta.textContent = `${art.style} • ${art.year} • ${art.dimensions} • ${art.medium}`;
+            modalDesc.textContent = art.description;
+            modal.classList.add('active');
+            resetRating();
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+            stopSlideshow();
+        }
+
+        modalClose.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            renderGallery();
+        });
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.getAttribute('data-filter');
+                renderGallery();
+            });
+        });
+
+        // Étoiles de notation interactives
+        const stars = document.querySelectorAll('#ratingStars span');
+        stars.forEach((star, index) => {
+            star.addEventListener('click', () => {
+                stars.forEach((s, i) => {
+                    if (i <= index) s.classList.add('active');
+                    else s.classList.remove('active');
+                });
+            });
+        });
+
+        function resetRating() {
+            stars.forEach(s => s.classList.remove('active'));
+        }
+
+        // Mode Diaporama
+        slideshowBtn.addEventListener('click', () => {
+            if (isSlideshowActive) {
+                stopSlideshow();
+            } else {
+                startSlideshow();
+            }
+        });
+
+        function startSlideshow() {
+            if (artworks.length === 0) return;
+            isSlideshowActive = true;
+            slideshowBtn.textContent = "⏹ Arrêter";
+            slideshowBtn.style.backgroundColor = "var(--accent)";
+            slideshowBtn.style.color = "var(--bg-primary)";
+
+            let index = 0;
+            openModal(artworks[index]);
+
+            slideshowInterval = setInterval(() => {
+                index = (index + 1) % artworks.length;
+                openModal(artworks[index]);
+            }, 4000);
+        }
+
+        function stopSlideshow() {
+            isSlideshowActive = false;
+            clearInterval(slideshowInterval);
+            slideshowBtn.textContent = "▶ Diaporama";
+            slideshowBtn.style.backgroundColor = "transparent";
+            slideshowBtn.style.color = "var(--accent)";
+        }
+
+        // Initialisation
+        renderGallery();
+    </script>
+</body>
+</html>
